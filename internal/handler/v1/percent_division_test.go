@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gitlab.com/a5805/ondeu/ondeu-back/internal/service"
 	servicemocks "gitlab.com/a5805/ondeu/ondeu-back/internal/service/mocks"
-	"gitlab.com/a5805/ondeu/ondeu-back/pkg/modules/dto"
+	"gitlab.com/a5805/ondeu/ondeu-back/pkg/models/dto"
 	"gorm.io/gorm"
 	"io"
 	"mime/multipart"
