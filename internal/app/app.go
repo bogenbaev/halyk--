@@ -3,20 +3,15 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
+	external2 "gitlab.com/a5805/ondeu/ondeu-back/external"
 	"gitlab.com/a5805/ondeu/ondeu-back/internal/handler"
-	remote2 "gitlab.com/a5805/ondeu/ondeu-back/internal/remote"
 	"gitlab.com/a5805/ondeu/ondeu-back/internal/repository"
 	"gitlab.com/a5805/ondeu/ondeu-back/internal/server"
 	"gitlab.com/a5805/ondeu/ondeu-back/internal/service"
-	"gitlab.com/a5805/ondeu/ondeu-back/pkg/gocloak/implementation"
-	"gitlab.com/a5805/ondeu/ondeu-back/pkg/modules"
+	"gitlab.com/a5805/ondeu/ondeu-back/pkg/models"
 	"os"
 	"os/signal"
 	"strconv"
@@ -29,40 +24,16 @@ func Run() {
 	cfg := initConfigs()
 	setLogLevel(cfg.LogLevel)
 
-	keycloak := implementation.Keycloak(cfg.Keycloak.Host, cfg.Keycloak.Realm)
+	db := repository.NewRedis(cfg.Cache.Host + ":" + cfg.Cache.Port)
 
-	db := repository.NewPostgresRepository(repository.Config{
-		Host:     cfg.Database.Host,
-		Username: cfg.Database.Username,
-		Password: cfg.Database.Password,
-		Dbname:   cfg.Database.DBName,
-		SSLMode:  cfg.Database.SSLMode,
-	})
-
-	objectStorageConfig := &aws.Config{
-		Credentials: credentials.NewStaticCredentials(
-			cfg.ObjectStorage.ClientKey,
-			cfg.ObjectStorage.ClientSecret,
-			""),
-		Endpoint:         aws.String(cfg.ObjectStorage.Endpoint),
-		Region:           aws.String("us-east-1"),
-		DisableSSL:       aws.Bool(true),
-		S3ForcePathStyle: aws.Bool(false), // // Configures to use subdomain/virtual calling format. Depending on your version, alternatively use o.UsePathStyle = false
-	}
-	newSession, err := session.NewSession(objectStorageConfig)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	s3Client := s3.New(newSession)
-
+	external := external2.NewExternalService(cfg)
 	repo := repository.NewRepository(db)
-	remote := remote2.NewRemote(s3Client, cfg.ObjectStorage)
-	services := service.NewServices(cfg, keycloak, repo, remote)
-	handlers := handler.NewHandler(services, repo, keycloak)
+	services := service.NewServices(cfg, external, repo)
+	handlers := handler.NewHandler(services)
 	srv := new(server.Server)
 
 	go func() {
-		if err = srv.Run(cfg.Port, handlers.Init()); err != nil {
+		if err := srv.Run(cfg.Port, handlers.Init()); err != nil {
 			logrus.Errorf("error occured while running http server %s/n", err.Error())
 		}
 	}()
@@ -80,48 +51,42 @@ func Run() {
 	}
 }
 
-func initConfigs() *modules.AppConfigs {
+func initConfigs() *models.AppConfigs {
 	err := godotenv.Load(".env")
 	if err != nil {
 		logrus.Error("Error loading .env file")
 	}
 
-	keycloak := &modules.Keycloak{
-		Host:              os.Getenv("KEYCLOAK_HOST"),
-		ClientID:          os.Getenv("KEYCLOAK_CLIENT_ID"),
-		Realm:             os.Getenv("KEYCLOAK_REALM"),
-		AdminClientID:     os.Getenv("KEYCLOAK_ADMIN_CLIENT_ID"),
-		AdminClientSecret: os.Getenv("KEYCLOAK_ADMIN_CLIENT_SECRET"),
+	cache := &models.Redis{
+		Host: os.Getenv("REDIS_HOST"),
+		Port: os.Getenv("REDIS_PORT"),
 	}
 
-	databasePort, err := strconv.Atoi(os.Getenv("DB_PORT"))
+	api1Percent, err := strconv.ParseFloat(os.Getenv("API1_PERCENT"), 32)
 	if err != nil {
-		databasePort = 5432
-		fmt.Printf("DB_PORT is not set, using default port: %d\n", databasePort)
-	}
-	database := &modules.Postgre{
-		Host:     os.Getenv("DB_HOST"),
-		Port:     databasePort,
-		Username: os.Getenv("DB_USERNAME"),
-		Password: os.Getenv("DB_PASSWORD"),
-		DBName:   os.Getenv("DB_NAME"),
-		SSLMode:  os.Getenv("DB_SSL_MODE"),
+		fmt.Printf("api1 percent is not set: %s\n", err.Error())
 	}
 
-	objectStorage := &modules.ObjectStorage{
-		Endpoint:     os.Getenv("SPACES_ENDPOINT"),
-		Bucket:       os.Getenv("SPACES_BUCKET"),
-		ClientName:   os.Getenv("SPACES_CLIENT_NAME"),
-		ClientSecret: os.Getenv("SPACES_CLIENT_SECRET"),
-		ClientKey:    os.Getenv("SPACES_CLIENT_KEY"),
+	api2Percent, err := strconv.ParseFloat(os.Getenv("API2_PERCENT"), 32)
+	if err != nil {
+		fmt.Printf("api2 percent is not set: %s\n", err.Error())
 	}
 
-	return &modules.AppConfigs{
-		Port:          os.Getenv("PORT"),
-		LogLevel:      os.Getenv("LOG_LEVEL"),
-		Keycloak:      keycloak,
-		Database:      database,
-		ObjectStorage: objectStorage,
+	percentageDivision := &models.PercentageDivision{
+		Api1Percent: api1Percent,
+		Api2Percent: api2Percent,
+		Api1Count:   0,
+		Api2Count:   0,
+		Total:       0,
+	}
+
+	return &models.AppConfigs{
+		Port:     os.Getenv("PORT"),
+		LogLevel: os.Getenv("LOG_LEVEL"),
+		Cache:    cache,
+		Ratio:    percentageDivision,
+		API1:     os.Getenv("URL_LOVE_PERCENTAGE"),
+		API2:     os.Getenv("URL_NUMBERS"),
 	}
 }
 

@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"gitlab.com/a5805/ondeu/ondeu-back/internal/repository"
-	keycloak2 "gitlab.com/a5805/ondeu/ondeu-back/pkg/gocloak"
 	"net/http"
 	"os"
 
@@ -13,15 +11,11 @@ import (
 
 type Handler struct {
 	services *service.Services
-	keycloak keycloak2.IKeycloak
-	repos    *repository.Repository
 }
 
-func NewHandler(services *service.Services, repos *repository.Repository, keycloak keycloak2.IKeycloak) *Handler {
+func NewHandler(services *service.Services) *Handler {
 	return &Handler{
 		services: services,
-		keycloak: keycloak,
-		repos:    repos,
 	}
 }
 
@@ -36,9 +30,6 @@ func (h *Handler) Init() *gin.Engine {
 		SkipPaths: []string{"/health"},
 	}))
 
-	router.Use(v1.CORSMiddleware())
-	router.Use(v1.ReadRequestBody())
-
 	router.Use(gin.Recovery())
 
 	// third party handlers
@@ -50,7 +41,7 @@ func (h *Handler) Init() *gin.Engine {
 }
 
 func (h *Handler) InitRoutes(router *gin.Engine) {
-	handler := v1.NewHandler(h.services, h.repos, h.keycloak)
+	handler := v1.NewHandler(h.services)
 
 	api := router.Group("/api")
 	{

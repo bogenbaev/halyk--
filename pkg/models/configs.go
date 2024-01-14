@@ -1,34 +1,23 @@
-package modules
+package models
 
 type AppConfigs struct {
-	Port          string
-	LogLevel      string
-	Keycloak      *Keycloak
-	Database      *Postgre
-	ObjectStorage *ObjectStorage
+	Port     string
+	LogLevel string
+	Cache    *Redis
+	Ratio    *PercentageDivision
+	API1     string
+	API2     string
 }
 
-type ObjectStorage struct {
-	Endpoint     string
-	Bucket       string
-	ClientName   string
-	ClientSecret string
-	ClientKey    string
+type Redis struct {
+	Host string
+	Port string
 }
 
-type Postgre struct {
-	Host     string
-	Port     int
-	Username string
-	Password string
-	DBName   string
-	SSLMode  string
-}
-
-type Keycloak struct {
-	Host              string
-	Realm             string
-	ClientID          string
-	AdminClientID     string
-	AdminClientSecret string
+type PercentageDivision struct {
+	Total       int
+	Api1Count   int
+	Api2Count   int
+	Api1Percent float64
+	Api2Percent float64
 }

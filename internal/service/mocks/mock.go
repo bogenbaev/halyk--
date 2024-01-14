@@ -12,7 +12,7 @@ import (
 
 	v8 "github.com/Nerzal/gocloak/v8"
 	gomock "github.com/golang/mock/gomock"
-	dto "gitlab.com/a5805/ondeu/ondeu-back/pkg/modules/dto"
+	dto "gitlab.com/a5805/ondeu/ondeu-back/pkg/models/dto"
 )
 
 // MockDocumentService is a mock of DocumentService interface.
