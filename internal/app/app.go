@@ -62,12 +62,12 @@ func initConfigs() *models.AppConfigs {
 		Port: os.Getenv("REDIS_PORT"),
 	}
 
-	api1Percent, err := strconv.Atoi(os.Getenv("API1_PERCENT"))
+	api1Percent, err := strconv.ParseFloat(os.Getenv("API1_PERCENT"), 32)
 	if err != nil {
 		fmt.Printf("api1 percent is not set: %s\n", err.Error())
 	}
 
-	api2Percent, err := strconv.Atoi(os.Getenv("API2_PERCENT"))
+	api2Percent, err := strconv.ParseFloat(os.Getenv("API2_PERCENT"), 32)
 	if err != nil {
 		fmt.Printf("api2 percent is not set: %s\n", err.Error())
 	}
