@@ -18,8 +18,6 @@ func NewHandler(services *service.Services) *Handler {
 func (h *Handler) Init(api *gin.RouterGroup) {
 	v1 := api.Group("/v1")
 	{
-		h.initPercentDivisionRoutes(v1)
-		h.initAPI1Routes(v1)
-		h.initAPI2Routes(v1)
+		h.initLoadBalancer(v1)
 	}
 }

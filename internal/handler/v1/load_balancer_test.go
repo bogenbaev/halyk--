@@ -87,10 +87,10 @@ package v1
 //		m := multipart.NewWriter(body)
 //
 //		if tt.fileExists {
-//			writer, err := m.CreateFormFile("file", "./percent_division.go")
+//			writer, err := m.CreateFormFile("file", "./load_balancer.go")
 //			require.NoError(t, err)
 //
-//			file, err := os.Open("./percent_division.go")
+//			file, err := os.Open("./load_balancer.go")
 //			require.NoError(t, err)
 //
 //			_, err = io.Copy(writer, file)

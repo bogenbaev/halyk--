@@ -15,9 +15,6 @@ type Redis struct {
 }
 
 type PercentageDivision struct {
-	Total       int
-	Api1Count   int
-	Api2Count   int
-	Api1Percent float64
-	Api2Percent float64
+	Api1Percent int
+	Api2Percent int
 }

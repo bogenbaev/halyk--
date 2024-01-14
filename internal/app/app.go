@@ -6,7 +6,7 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
-	external2 "gitlab.com/a5805/ondeu/ondeu-back/external"
+	external2 "gitlab.com/a5805/ondeu/ondeu-back/internal/client"
 	"gitlab.com/a5805/ondeu/ondeu-back/internal/handler"
 	"gitlab.com/a5805/ondeu/ondeu-back/internal/repository"
 	"gitlab.com/a5805/ondeu/ondeu-back/internal/server"
@@ -62,12 +62,12 @@ func initConfigs() *models.AppConfigs {
 		Port: os.Getenv("REDIS_PORT"),
 	}
 
-	api1Percent, err := strconv.ParseFloat(os.Getenv("API1_PERCENT"), 32)
+	api1Percent, err := strconv.Atoi(os.Getenv("API1_PERCENT"))
 	if err != nil {
 		fmt.Printf("api1 percent is not set: %s\n", err.Error())
 	}
 
-	api2Percent, err := strconv.ParseFloat(os.Getenv("API2_PERCENT"), 32)
+	api2Percent, err := strconv.Atoi(os.Getenv("API2_PERCENT"))
 	if err != nil {
 		fmt.Printf("api2 percent is not set: %s\n", err.Error())
 	}
@@ -75,9 +75,6 @@ func initConfigs() *models.AppConfigs {
 	percentageDivision := &models.PercentageDivision{
 		Api1Percent: api1Percent,
 		Api2Percent: api2Percent,
-		Api1Count:   0,
-		Api2Count:   0,
-		Total:       0,
 	}
 
 	return &models.AppConfigs{
@@ -85,8 +82,8 @@ func initConfigs() *models.AppConfigs {
 		LogLevel: os.Getenv("LOG_LEVEL"),
 		Cache:    cache,
 		Ratio:    percentageDivision,
-		API1:     os.Getenv("URL_LOVE_PERCENTAGE"),
-		API2:     os.Getenv("URL_NUMBERS"),
+		API1:     os.Getenv("URL1"),
+		API2:     os.Getenv("URL2"),
 	}
 }
 
