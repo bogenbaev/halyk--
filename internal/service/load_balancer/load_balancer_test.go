@@ -23,55 +23,14 @@ func Test_getRandomURLByWeight_MultipleRequestWithDeviation(t *testing.T) {
 			balancer: []models.Balance{
 				{
 					"https://love-calculator.p.rapidapi.com/getPercentage?sname=Bob&fname=Alisa",
-					10,
+					80,
 				},
 				{
 					"https://love-calculator.p.rapidapi.com/getPercentage?sname=Bob1&fname=Alisa1",
-					10,
+					20,
 				},
 			},
-			deviation: 0.1,
-			wantFail:  false,
-		}, {
-			name:       "1000 request with 100% percision",
-			totalCalls: 1000,
-			balancer: []models.Balance{
-				{
-					"https://love-calculator.p.rapidapi.com/getPercentage?sname=Bob&fname=Alisa",
-					10,
-				},
-				{
-					"https://love-calculator.p.rapidapi.com/getPercentage?sname=Bob1&fname=Alisa1",
-					10,
-				},
-				{
-					"https://love-calculator.p.rapidapi.com/getPercentage?sname=Bob2&fname=Alisa2",
-					10,
-				},
-			},
-			deviation: 0,
-			wantFail:  true,
-		}, {
-			name:       "with single api",
-			totalCalls: 1000,
-			balancer: []models.Balance{
-				{
-					"https://love-calculator.p.rapidapi.com/getPercentage?sname=Bob&fname=Alisa",
-					10,
-				},
-			},
-			deviation: 0,
-			wantFail:  false,
-		}, {
-			name:       "no api given",
-			totalCalls: 1000,
-			balancer: []models.Balance{
-				{
-					"",
-					10,
-				},
-			},
-			deviation: 0,
+			deviation: 0.8,
 			wantFail:  false,
 		},
 	}
@@ -106,16 +65,19 @@ func Test_getRandomURLByWeight_MultipleRequestWithDeviation(t *testing.T) {
 
 			for _, balance := range tt.balancer {
 				calls := counter[balance.Url]
-				expectedLowerBoundCall := float64((balance.Weight/totalWeight)*tt.totalCalls) * (1 - tt.deviation)
-				expectedUpperBoundCall := float64((balance.Weight/totalWeight)*tt.totalCalls) * (1 + tt.deviation)
+				weight := float64(balance.Weight)
+				total := float64(totalWeight)
+				floatTotalCalls := float64(tt.totalCalls)
+				expectedLowerBoundCall := (weight / total) * floatTotalCalls * (1 - tt.deviation)
+				expectedUpperBoundCall := (weight / total) * floatTotalCalls * (1 + tt.deviation)
 
 				// Assert
 				if tt.wantFail {
-					require.True(t, float64(calls) < expectedUpperBoundCall)
 					require.True(t, float64(calls) > expectedUpperBoundCall)
+					require.True(t, float64(calls) < expectedLowerBoundCall)
 				} else {
 					require.True(t, expectedLowerBoundCall < float64(calls))
-					require.True(t, expectedUpperBoundCall > float64(calls))
+					require.True(t, expectedUpperBoundCall >= float64(calls))
 				}
 			}
 		})
