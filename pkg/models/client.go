@@ -1,8 +1,8 @@
 package models
 
 type Response struct {
-	Body   any
-	Status string
+	Body   any    `json:"Body"`
+	Status string `json:"Method"`
 }
 
 type Request struct {

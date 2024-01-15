@@ -24,7 +24,7 @@ func Run() {
 	cfg := initConfigs()
 	setLogLevel(cfg.LogLevel)
 
-	db := repository.NewRedis(cfg.Cache.Host + ":" + cfg.Cache.Port)
+	db := repository.NewRedis(cfg.Cache)
 
 	external := external2.NewExternalService(cfg)
 	repo := repository.NewRepository(db)
@@ -58,32 +58,35 @@ func initConfigs() *models.AppConfigs {
 	}
 
 	cache := &models.Redis{
-		Host: os.Getenv("REDIS_HOST"),
-		Port: os.Getenv("REDIS_PORT"),
+		Host:     os.Getenv("REDIS_HOST"),
+		Port:     os.Getenv("REDIS_PORT"),
+		Password: os.Getenv("REDIS_PASSWORD"),
 	}
 
-	api1Percent, err := strconv.ParseFloat(os.Getenv("API1_PERCENT"), 32)
+	api1Percent, err := strconv.Atoi(os.Getenv("API1_PERCENT"))
 	if err != nil {
 		fmt.Printf("api1 percent is not set: %s\n", err.Error())
 	}
 
-	api2Percent, err := strconv.ParseFloat(os.Getenv("API2_PERCENT"), 32)
+	api2Percent, err := strconv.Atoi(os.Getenv("API2_PERCENT"))
 	if err != nil {
 		fmt.Printf("api2 percent is not set: %s\n", err.Error())
-	}
-
-	percentageDivision := &models.PercentageDivision{
-		Api1Percent: api1Percent,
-		Api2Percent: api2Percent,
 	}
 
 	return &models.AppConfigs{
 		Port:     os.Getenv("PORT"),
 		LogLevel: os.Getenv("LOG_LEVEL"),
 		Cache:    cache,
-		Ratio:    percentageDivision,
-		API1:     os.Getenv("URL1"),
-		API2:     os.Getenv("URL2"),
+		Balances: []models.Balance{
+			{
+				Url:    os.Getenv("URL1"),
+				Weight: api1Percent,
+			},
+			{
+				Url:    os.Getenv("URL2"),
+				Weight: api2Percent,
+			},
+		},
 	}
 }
 

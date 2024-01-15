@@ -42,35 +42,19 @@ func (s *service) Proxify(ctx context.Context, in models.Request) (models.Respon
 }
 
 func (s *service) getRandomURLByWeight() string {
-	type Balance struct {
-		url    string
-		weight float64
+	totalWeight := 0
+	for _, balance := range s.cfg.Balances {
+		totalWeight += balance.Weight
 	}
 
-	balances := []Balance{
-		{
-			url:    s.cfg.API1,
-			weight: s.cfg.Ratio.Api1Percent,
-		},
-		{
-			url:    s.cfg.API2,
-			weight: s.cfg.Ratio.Api2Percent,
-		},
-	}
-
-	totalWeight := 0.0
-	for _, balance := range balances {
-		totalWeight += balance.weight
-	}
-
-	rValue := rand.Intn(int(totalWeight * 100))
-	left, right := 0.0, 0.0
-	for _, balance := range balances {
+	rValue := rand.Intn(totalWeight)
+	left, right := 0, 0
+	for _, balance := range s.cfg.Balances {
 		left = right
-		right += balance.weight * 100
+		right += balance.Weight
 
-		if rValue > int(left) && rValue <= int(right) {
-			return balance.url
+		if rValue > left && rValue <= right {
+			return balance.Url
 		}
 	}
 

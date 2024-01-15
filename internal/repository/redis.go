@@ -2,14 +2,16 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"github.com/redis/go-redis/v9"
+	"gitlab.com/a5805/ondeu/ondeu-back/pkg/models"
 	"log"
 )
 
-func NewRedis(address string) *redis.Client {
+func NewRedis(cfg *models.Redis) *redis.Client {
 	client := redis.NewClient(&redis.Options{
-		Addr:     address,
-		Password: "test123",
+		Addr:     fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
+		Password: cfg.Password,
 		DB:       0,
 	})
 

@@ -4,17 +4,16 @@ type AppConfigs struct {
 	Port     string
 	LogLevel string
 	Cache    *Redis
-	Ratio    *PercentageDivision
-	API1     string
-	API2     string
+	Balances []Balance
+}
+
+type Balance struct {
+	Url    string
+	Weight int
 }
 
 type Redis struct {
-	Host string
-	Port string
-}
-
-type PercentageDivision struct {
-	Api1Percent float64
-	Api2Percent float64
+	Host     string
+	Port     string
+	Password string
 }
