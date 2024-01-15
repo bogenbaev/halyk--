@@ -2,8 +2,10 @@ package load_balancer
 
 import (
 	"context"
+	"errors"
 	"gitlab.com/a5805/ondeu/ondeu-back/internal/client"
 	"gitlab.com/a5805/ondeu/ondeu-back/internal/repository"
+	"gitlab.com/a5805/ondeu/ondeu-back/internal/repository/cache"
 	"gitlab.com/a5805/ondeu/ondeu-back/pkg/models"
 	"math/rand"
 )
@@ -30,7 +32,13 @@ func (s *service) Proxify(ctx context.Context, in models.Request) (models.Respon
 		return resp, err
 	}
 
-	return resp, s.repo.Cache.Set(ctx, in)
+	if clientData, err := s.repo.Get(ctx, in); !errors.Is(err, cache.ErrNotFound) && err != nil {
+		return resp, err
+	} else if errors.Is(err, cache.ErrNotFound) {
+		return resp, s.repo.Cache.Set(ctx, in)
+	} else {
+		return clientData, nil
+	}
 }
 
 func (s *service) getRandomURLByWeight() string {
@@ -55,11 +63,11 @@ func (s *service) getRandomURLByWeight() string {
 		totalWeight += balance.weight
 	}
 
-	rValue := rand.Intn(int(totalWeight))
+	rValue := rand.Intn(int(totalWeight * 100))
 	left, right := 0.0, 0.0
 	for _, balance := range balances {
 		left = right
-		right += balance.weight
+		right += balance.weight * 100
 
 		if rValue > int(left) && rValue <= int(right) {
 			return balance.url

@@ -22,7 +22,7 @@ func (s *service) SendRequest(_ context.Context, url string) (out models.Respons
 	req, _ := http.NewRequest("GET", url, nil)
 
 	req.Header.Add("X-RapidAPI-Key", "c82637c962mshb6672571c2f05c8p1b610fjsn7eb0cf6db9e8")
-	req.Header.Add("X-RapidAPI-Host", "numbersapi.p.rapidapi.com")
+	req.Header.Add("X-RapidAPI-Host", "love-calculator.p.rapidapi.com")
 
 	res, _ := http.DefaultClient.Do(req)
 

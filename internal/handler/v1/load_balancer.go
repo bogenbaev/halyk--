@@ -8,9 +8,8 @@ import (
 )
 
 func (h *Handler) initLoadBalancer(api *gin.RouterGroup) {
-	crud := api.Group("/")
 	{
-		crud.Any("", h.SendRequest)
+		api.GET("/*path", h.SendRequest)
 	}
 }
 
@@ -24,15 +23,8 @@ func (h *Handler) SendRequest(ctx *gin.Context) {
 		IP:     ctx.ClientIP(),
 		Url:    ctx.Request.URL.String(),
 		Method: ctx.Request.Method,
+		Body:   ctx.Request.URL.Path,
 	}
-
-	var requestData AnyData
-	if err := ctx.ShouldBindJSON(&requestData); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	input.Body = requestData
 
 	response, err := h.services.Proxifier.Proxify(ctx, input)
 	if err != nil {
