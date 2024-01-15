@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"github.com/redis/go-redis/v9"
-	"gitlab.com/a5805/ondeu/ondeu-back/internal/repository/cache"
+	"gitlab.com/a5805/ondeu/ondeu-back/internal/repository/cache_redis"
 	"gitlab.com/a5805/ondeu/ondeu-back/pkg/models"
 )
 
@@ -20,6 +20,6 @@ type Repository struct {
 
 func NewRepository(db *redis.Client) *Repository {
 	return &Repository{
-		Cache: cache.NewCache(db),
+		Cache: cache_redis.NewCache(db),
 	}
 }

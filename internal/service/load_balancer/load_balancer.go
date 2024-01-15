@@ -5,7 +5,7 @@ import (
 	"errors"
 	"gitlab.com/a5805/ondeu/ondeu-back/internal/client"
 	"gitlab.com/a5805/ondeu/ondeu-back/internal/repository"
-	"gitlab.com/a5805/ondeu/ondeu-back/internal/repository/cache"
+	"gitlab.com/a5805/ondeu/ondeu-back/internal/repository/cache_redis"
 	"gitlab.com/a5805/ondeu/ondeu-back/pkg/models"
 	"math/rand"
 )
@@ -32,9 +32,9 @@ func (s *service) Proxify(ctx context.Context, in models.Request) (models.Respon
 		return resp, err
 	}
 
-	if clientData, err := s.repo.Get(ctx, in); !errors.Is(err, cache.ErrNotFound) && err != nil {
+	if clientData, err := s.repo.Get(ctx, in); !errors.Is(err, cache_redis.ErrNotFound) && err != nil {
 		return resp, err
-	} else if errors.Is(err, cache.ErrNotFound) {
+	} else if errors.Is(err, cache_redis.ErrNotFound) {
 		return resp, s.repo.Cache.Set(ctx, in)
 	} else {
 		return clientData, nil

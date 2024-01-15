@@ -15,7 +15,7 @@ services:
       - '6380:6379'
     command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
     volumes:
-      - cache:/data
+      - cache_redis:/data
 volumes:
   portainer_data: {}
   cache:
