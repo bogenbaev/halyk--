@@ -30,7 +30,7 @@ func Test_getRandomURLByWeight_MultipleRequestWithDeviation(t *testing.T) {
 					20,
 				},
 			},
-			deviation: 0.8,
+			deviation: 0.1,
 			wantFail:  false,
 		},
 	}
